@@ -13,7 +13,11 @@
     "webpack-glsl-loader": "^1.0.1"
   },
   "dependencies": {
+    "@types/three": "^0.156.0",
     "3d-view-controls": "^2.2.2",
-    "gl-matrix": "^3.3.0"
+    "dat.gui": "^0.7.9",
+    "gl-matrix": "^3.3.0",
+    "stats-js": "^1.0.1",
+    "three": "^0.156.1"
   }
 }

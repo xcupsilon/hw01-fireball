@@ -1,7 +1,12 @@
 import { vec3 } from "gl-matrix"
 const Stats = require("stats-js")
+
+import * as THREE from "three"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
+
 // @ts-ignore
 import * as DAT from "dat.gui"
+
 import Icosphere from "./geometry/Icosphere"
 import Square from "./geometry/Square"
 import Cube from "./geometry/Cube"
@@ -16,6 +21,12 @@ const controls = {
   tesselations: 5,
   color: [255, 0, 0], // color of the object
   "Load Scene": loadScene, // A function pointer, essentially
+}
+
+// Screen dimension
+const sizes = {
+  width: 800,
+  height: 600,
 }
 
 let startTime = Date.now() // Start time for animation
