@@ -1,42 +1,35 @@
-import { vec3 } from "gl-matrix"
-const Stats = require("stats-js")
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 // @ts-ignore
 import * as DAT from "dat.gui"
-import Icosphere from "./geometry/Icosphere"
-import Square from "./geometry/Square"
-import Cube from "./geometry/Cube"
-import OpenGLRenderer from "./rendering/gl/OpenGLRenderer"
-import Camera from "./Camera"
-import { setGL } from "./globals"
-import ShaderProgram, { Shader } from "./rendering/gl/ShaderProgram"
 
-// Define an object with application parameters and button callbacks
-// This will be referred to by dat.GUI's functions that add GUI elements.
-const controls = {
-  tesselations: 5,
-  color: [255, 0, 0], // color of the object
-  "Load Scene": loadScene, // A function pointer, essentially
-}
+const Stats = require("stats-js")
 
-let startTime = Date.now() // Start time for animation
 let worleyScale = 0.00006 // Scale for worley noise
 let timeScale = 0.1 // Scale for time
 
-let icosphere: Icosphere
-let square: Square
-let cube: Cube
-let prevTesselations: number = 5
-
-function loadScene() {
-  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations)
-  icosphere.create()
-  square = new Square(vec3.fromValues(0, 0, 0))
-  square.create()
-  cube = new Cube(vec3.fromValues(0, 0, 0), 1)
-  cube.create()
-}
-
 function main() {
+  // getting the canvas DOM element from our html
+  const canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement
+
+  // Screen dimension
+  const screen = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }
+
+  // Cursor position
+  const cursor = {
+    x: 0,
+    y: 0,
+  }
+
+  window.addEventListener("mousemove", (event) => {
+    cursor.x = event.clientX / screen.width - 0.5 // -0.5 to 0.5
+    cursor.y = -(event.clientY / screen.height - 0.5)
+  })
+
   // Initial display for framerate
   const stats = Stats()
   stats.setMode(0)
@@ -45,69 +38,52 @@ function main() {
   stats.domElement.style.top = "0px"
   document.body.appendChild(stats.domElement)
 
-  // get canvas and webgl context
-  const canvas = <HTMLCanvasElement>document.getElementById("canvas")
-  const gl = <WebGL2RenderingContext>canvas.getContext("webgl2")
-  if (!gl) {
-    alert("WebGL 2 not supported!")
-  }
-  // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
-  // Later, we can import `gl` from `globals.ts` to access it
-  setGL(gl)
+  const scene = new THREE.Scene()
+  // Default object
+  const mesh = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1, 6),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  )
+  scene.add(mesh)
 
-  // Initial call to load scene
-  loadScene()
+  // perspective camera
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    screen.width / screen.height,
+    0.1,
+    100
+  )
+  camera.position.z = 3
+  scene.add(camera)
 
-  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0))
+  // Controls
+  const controls = new OrbitControls(camera, canvas)
+  controls.enableDamping = true
 
-  const renderer = new OpenGLRenderer(canvas)
-  renderer.setClearColor(0.2, 0.2, 0.2, 1)
-  gl.enable(gl.DEPTH_TEST)
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas })
+  renderer.setSize(screen.width, screen.height)
 
-  const lambert = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require("./shaders/vert.glsl")),
-    new Shader(gl.FRAGMENT_SHADER, require("./shaders/frag.glsl")),
-  ])
+  // Clock in Three.js
+  const clock = new THREE.Clock()
 
-  // Set default color to red
-  lambert.setGeometryColor(new Float32Array([1, 0, 0, 1]))
+  // // Set default color to red
+  // lambert.setGeometryColor(new Float32Array([1, 0, 0, 1]))
 
-  // Add controls to the gui
-  const gui = new DAT.GUI()
-  gui.add(controls, "tesselations", 0, 8).step(1)
-  gui.add(controls, "Load Scene")
-  gui.addColor(controls, "color").onChange(() => {
-    const normalizedColor = new Float32Array([
-      controls.color[0] / 255,
-      controls.color[1] / 255,
-      controls.color[2] / 255,
-      1.0, // Alpha value. You can adjust this if you want a different default alpha.
-    ])
-    lambert.setGeometryColor(normalizedColor)
-  })
-
-  // set the default scale for worley noise
-  lambert.setScale(new Float32Array([worleyScale, worleyScale, worleyScale, 1]))
+  // // set the default scale for worley noise
+  // lambert.setScale(new Float32Array([worleyScale, worleyScale, worleyScale, 1]))
 
   // This function will be called every frame
   function tick() {
-    let elapsedTime = (Date.now() - startTime) * 0.001 * timeScale // Convert from ms to seconds, remap to -1 to 1 range
-    lambert.setTime(elapsedTime)
+    const elapsedTime = clock.getElapsedTime()
 
-    camera.update()
+    // lambert.setTime(elapsedTime)
+    controls.update()
+
     stats.begin()
-    gl.viewport(0, 0, window.innerWidth, window.innerHeight)
+
     renderer.clear()
-    if (controls.tesselations != prevTesselations) {
-      prevTesselations = controls.tesselations
-      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations)
-      icosphere.create()
-    }
-    renderer.render(camera, lambert, [
-      //   cube,
-      icosphere,
-      //   square,
-    ])
+    renderer.render(scene, camera)
+
     stats.end()
 
     // Tell the browser to call `tick` again whenever it renders a new frame
@@ -117,17 +93,19 @@ function main() {
   window.addEventListener(
     "resize",
     function () {
-      renderer.setSize(window.innerWidth, window.innerHeight)
-      camera.setAspectRatio(window.innerWidth / window.innerHeight)
+      screen.width = window.innerWidth
+      screen.height = window.innerHeight
+
+      // Update camera aspect ratio and renderer size
+      camera.aspect = screen.width / screen.height
       camera.updateProjectionMatrix()
+
+      renderer.setSize(screen.width, screen.height)
     },
     false
   )
 
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  camera.setAspectRatio(window.innerWidth / window.innerHeight)
-  camera.updateProjectionMatrix()
-
+  renderer.setSize(screen.width, screen.height)
   // Start the render loop
   tick()
 }
