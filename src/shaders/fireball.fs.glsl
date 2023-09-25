@@ -1,16 +1,14 @@
-#version 300 es
+precision mediump float;
 
-precision highp float;
+uniform vec3 uColor;
+uniform float uTime;
+uniform sampler2D uTexture;
 
-uniform vec4 u_Color;
-uniform float u_Time;
-
-in vec4 fs_Nor;
-in vec4 fs_LightVec;
-in vec4 fs_Col;
-in vec4 fs_Pos;
-
-out vec4 out_Col;
+varying vec2 vUv;
+varying float vElevation;
+varying vec3 vPos;
+varying vec3 vNor;
+varying vec3 vCamNor;
 
 // A simple pseudo-random function based on the dot product.
 float rand(vec3 n) {
@@ -63,18 +61,19 @@ float PerlinFBM(vec3 p, int octaves) {
     return totalValue;
 }
 
-void main() {
-    vec4 controlledColor = u_Color;
+void main()
+{
+    vec2 matcapUV = vec2(vCamNor.x * 0.5 + 0.5, vCamNor.y * 0.5 + 0.5); // mapping normal to uv 
 
-    // Grid cell scale
-    float scale = 10.f;
-    // Adding 3D Perlin noise effect with multiple octaves
-    float n = PerlinFBM(fs_Pos.xyz * scale + vec3(u_Time), 8); // 8 octaves
-    // Noise color
-    vec3 perlinColor = vec3(0.f, 201.f / 255.f, 1.f);
-    // Modulate the color using the noise
-    vec3 finalColor = mix(controlledColor.rgb, perlinColor, 0.5 * (n - 0.5));
+    // sample from texture
+    vec4 textureColor = texture2D(uTexture, matcapUV);
 
-    out_Col = vec4(finalColor, controlledColor.a); // Retaining the original alpha value
+    // compute the luminance based on the matcap texture
+    float luminance = dot(textureColor.rgb, vec3(0.299, 0.587, 0.114));
+    float bias = 0.6; // adjusts from 0.2 to 0.8
+    float weight = luminance * 0.8 + bias;  
+
+    // todo: modify color based on parameters
+    vec3 finalColor = mix(uColor.rgb, textureColor.rgb, weight);
+    gl_FragColor = vec4(finalColor, 1.0);
 }
-

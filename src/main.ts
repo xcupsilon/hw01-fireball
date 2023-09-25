@@ -5,6 +5,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import * as DAT from "dat.gui"
 const Stats = require("stats-js")
 
+const vert = require("./shaders/fireball.vs.glsl")
+const frag = require("./shaders/fireball.fs.glsl")
+
 // Matcaps
 const flame = require("../static/textures/matcaps/flame.jpg").default
 const bluefade = require("../static/textures/matcaps/bluefade.png").default
@@ -18,6 +21,7 @@ const redhalo = require("../static/textures/matcaps/redhalo.png").default
 const sun = require("../static/textures/matcaps/sun.png").default
 const blackhole = require("../static/textures/matcaps/void.png").default
 
+// Texture used
 const textureLoader = new THREE.TextureLoader()
 const matcapTexture = textureLoader.load(redhalo)
 
@@ -25,9 +29,16 @@ const matcapTexture = textureLoader.load(redhalo)
 const parameters = {
   radius: 1, // Radius of the sphere
   subdivision: 8, // Subdivision of the sphere
-  basecolor: 0xffffff, // Color of the sphere
-  worleyScale: 0.00006, // Scale for worley noise
-  timeScale: 0.1, // Scale for time
+  basecolor: "#000000", // Base color of the sphere
+}
+
+// Uniform variables on the shader
+const uniforms = {
+  uTime: { value: 0.0 },
+  uColor: { value: new THREE.Color(0xffffff) },
+  uTexture: { value: matcapTexture },
+  uWorleyScale: { value: 0.00006 },
+  uTimeScale: { value: 0.1 },
 }
 
 function main() {
@@ -62,12 +73,25 @@ function main() {
   const scene = new THREE.Scene()
 
   // matcap material, override later for shader
-  const material = new THREE.MeshMatcapMaterial()
-  material.matcap = matcapTexture
+  const matcap = new THREE.MeshMatcapMaterial()
+  matcap.matcap = matcapTexture
+
+  // Material
+  const fireball = new THREE.ShaderMaterial({
+    vertexShader: vert,
+    fragmentShader: frag,
+    uniforms: uniforms,
+  })
+
+  // // Set default color to red
+  // lambert.setGeometryColor(new Float32Array([1, 0, 0, 1]))
+
+  // // set the default scale for worley noise
+  // lambert.setScale(new Float32Array([worleyScale, worleyScale, worleyScale, 1]))
 
   const mesh = new THREE.Mesh(
     new THREE.IcosahedronGeometry(parameters.radius, parameters.subdivision),
-    material
+    fireball
   )
   // load matcap texture
 
@@ -75,12 +99,7 @@ function main() {
 
   // Add GUI elements
   const gui = new DAT.GUI()
-  gui
-    .addColor(parameters, "basecolor")
-    .name("Base Color")
-    .onChange(() => {
-      mesh.material.color.set(parameters.basecolor)
-    })
+  gui.addColor(parameters, "basecolor").name("Base Color")
 
   gui
     .add(parameters, "radius", 0, 2)
@@ -109,14 +128,12 @@ function main() {
     .onChange(() => {
       parameters.radius = 1
       parameters.subdivision = 8
-      parameters.basecolor = 0xff0000
-      parameters.worleyScale = 0.00006
-      parameters.timeScale = 0.1
+
       mesh.geometry = new THREE.IcosahedronGeometry(
         parameters.radius,
         parameters.subdivision
       )
-      mesh.material.color.set(parameters.basecolor)
+      // mesh.material.color.set(parameters.basecolor)
     })
 
   // perspective camera
@@ -140,20 +157,17 @@ function main() {
   // Clock in Three.js
   const clock = new THREE.Clock()
 
-  // // Set default color to red
-  // lambert.setGeometryColor(new Float32Array([1, 0, 0, 1]))
-
-  // // set the default scale for worley noise
-  // lambert.setScale(new Float32Array([worleyScale, worleyScale, worleyScale, 1]))
-
   // This function will be called every frame
   function tick() {
+    // update time uniform
     const elapsedTime = clock.getElapsedTime()
 
-    // lambert.setTime(elapsedTime)
-    controls.update()
-
     stats.begin()
+    // update material
+    fireball.uniforms.uTime.value = elapsedTime
+    fireball.uniforms.uColor.value = new THREE.Color(parameters.basecolor)
+
+    controls.update()
 
     renderer.clear()
     renderer.render(scene, camera)
