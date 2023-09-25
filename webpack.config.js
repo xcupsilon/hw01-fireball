@@ -1,37 +1,49 @@
-const path = require('path');
+const path = require("path")
 
 module.exports = {
-  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  mode: process.env.NODE_ENV === "production" ? "production" : "development",
   entry: path.resolve(__dirname, "src/main"),
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
-    publicPath: '/',
+    publicPath: "/",
   },
   module: {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        use: "ts-loader",
+        exclude: /node_modules/,
       },
       {
         test: /\.glsl$/,
-        loader: 'webpack-glsl-loader'
+        loader: "webpack-glsl-loader",
       },
-    ]
+      // Add this rule for images
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[path][name].[ext]",
+            },
+          },
+        ],
+      },
+    ],
   },
   resolve: {
-    extensions: ['.ts', '.js' ],
+    extensions: [".ts", ".js"],
   },
-  devtool: 'source-map',
+  devtool: "source-map",
   devServer: {
     port: 5660,
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: path.join(__dirname, "dist"),
     },
     client: {
       overlay: true,
-    }
+    },
   },
-};
+}
