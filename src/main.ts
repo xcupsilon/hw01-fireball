@@ -28,7 +28,7 @@ const matcapTexture = textureLoader.load(redhalo)
 // Controllable parameters
 const parameters = {
   radius: 1, // Radius of the sphere
-  subdivision: 8, // Subdivision of the sphere
+  subdivision: 20, // Subdivision of the sphere
   basecolor: "#000000", // Base color of the sphere
 }
 
@@ -37,8 +37,8 @@ const uniforms = {
   uTime: { value: 0.0 },
   uColor: { value: new THREE.Color(0xffffff) },
   uTexture: { value: matcapTexture },
-  uWorleyScale: { value: 0.00006 },
   uTimeScale: { value: 0.1 },
+  uNoiseParams: { value: new THREE.Vector3(1, 0.1, 2.0) },
 }
 
 function main() {
@@ -112,7 +112,7 @@ function main() {
     })
 
   gui
-    .add(parameters, "subdivision", 3, 10, 1)
+    .add(parameters, "subdivision", 5, 30, 1)
     .name("Subdivision")
     .onChange(() => {
       mesh.geometry = new THREE.IcosahedronGeometry(
@@ -121,6 +121,11 @@ function main() {
       )
     })
 
+  // noise parameters
+  const noiseParams = gui.addFolder("Noise Parameters")
+  noiseParams.add(uniforms.uNoiseParams.value, "y", 0.1, 0.8).name("Frequency")
+  noiseParams.add(uniforms.uNoiseParams.value, "z", 2, 10).name("Amplitude")
+  noiseParams.add(uniforms.uNoiseParams.value, "x", 1, 2, 1).name("Octave")
   // button that will reset the parameters to their default values
   gui
     .add({ reset: () => {} }, "reset")
