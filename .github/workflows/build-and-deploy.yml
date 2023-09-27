@@ -1,4 +1,3 @@
-
 name: Build and Deploy
 on:
   push:
@@ -27,7 +26,8 @@ jobs:
         run: |
           npm ci
           export NODE_ENV=production
-          npm run-script build
+          export BASE_PATH=/${{ github.event.repository.name }}
+          npm run build
           touch dist/.nojekyll
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@3.6.2

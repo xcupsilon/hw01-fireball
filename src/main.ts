@@ -14,7 +14,7 @@ const redhalo = require("../public/static/textures/matcaps/redhalo.png").default
 
 // Texture used
 const textureLoader = new THREE.TextureLoader()
-const matcapTexture = textureLoader.load(flame)
+const matcapTexture = textureLoader.load(redhalo)
 
 // Controllable parameters
 const parameters = {
