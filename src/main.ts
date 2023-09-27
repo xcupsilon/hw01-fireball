@@ -38,7 +38,7 @@ const uniforms = {
   uColor: { value: new THREE.Color(0xffffff) },
   uTexture: { value: matcapTexture },
   uTimeScale: { value: 0.1 },
-  uNoiseParams: { value: new THREE.Vector3(2.0, 0.1, 3.5) },
+  uNoiseParams: { value: new THREE.Vector3(2.0, 0.1, 2.0) },
 }
 
 function main() {
