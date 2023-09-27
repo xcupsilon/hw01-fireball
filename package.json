@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "webpack-dev-server --no-hot --live-reload",
-    "build": "webpack"
+    "build": "webpack",
+    "deploy": "gh-pages -b main -d build"
   },
   "devDependencies": {
     "@types/webgl2": "0.0.6",
