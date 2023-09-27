@@ -26,7 +26,7 @@ jobs:
         run: |
           npm ci
           export NODE_ENV=production
-          export BASE_PATH=/${{ github.event.repository.name }}
+          export BASE_PATH=/${{ github.event.repository.name }}/
           npm run build
           touch dist/.nojekyll
       - name: Deploy 🚀
