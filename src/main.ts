@@ -17,7 +17,6 @@ const neutronstar = require("/static/textures/matcaps/neutronstar.png").default
 const bloodcell = require("/static/textures/matcaps/bloodcell.png").default
 const radiant = require("/static/textures/matcaps/radiant.png").default
 const redhalo = require("/static/textures/matcaps/redhalo.png").default
-const sun = require("/static/textures/matcaps/sun.png").default
 const blackhole = require("/static/textures/matcaps/void.png").default
 
 // Texture used
