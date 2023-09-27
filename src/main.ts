@@ -9,19 +9,12 @@ const vert = require("./shaders/fireball.vs.glsl")
 const frag = require("./shaders/fireball.fs.glsl")
 
 // Matcaps
-const flame = require("/static/textures/matcaps/flame.jpg").default
-const bluefade = require("/static/textures/matcaps/bluefade.png").default
-const fireandice = require("/static/textures/matcaps/fireandice.png").default
-const green = require("/static/textures/matcaps/green.png").default
-const neutronstar = require("/static/textures/matcaps/neutronstar.png").default
-const bloodcell = require("/static/textures/matcaps/bloodcell.png").default
-const radiant = require("/static/textures/matcaps/radiant.png").default
-const redhalo = require("/static/textures/matcaps/redhalo.png").default
-const blackhole = require("/static/textures/matcaps/void.png").default
+const flame = require("../public/static/textures/matcaps/flame.jpg").default
+const redhalo = require("../public/static/textures/matcaps/redhalo.png").default
 
 // Texture used
 const textureLoader = new THREE.TextureLoader()
-const matcapTexture = textureLoader.load(redhalo)
+const matcapTexture = textureLoader.load(flame)
 
 // Controllable parameters
 const parameters = {
