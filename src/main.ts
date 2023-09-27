@@ -28,7 +28,7 @@ const matcapTexture = textureLoader.load(redhalo)
 // Controllable parameters
 const parameters = {
   radius: 1, // Radius of the sphere
-  subdivision: 20, // Subdivision of the sphere
+  subdivision: 25, // Subdivision of the sphere
   basecolor: "#000000", // Base color of the sphere
 }
 
@@ -38,7 +38,7 @@ const uniforms = {
   uColor: { value: new THREE.Color(0xffffff) },
   uTexture: { value: matcapTexture },
   uTimeScale: { value: 0.1 },
-  uNoiseParams: { value: new THREE.Vector3(1, 0.1, 2.0) },
+  uNoiseParams: { value: new THREE.Vector3(2.0, 0.1, 3.5) },
 }
 
 function main() {
@@ -124,7 +124,7 @@ function main() {
   // noise parameters
   const noiseParams = gui.addFolder("Noise Parameters")
   noiseParams.add(uniforms.uNoiseParams.value, "y", 0.1, 0.8).name("Frequency")
-  noiseParams.add(uniforms.uNoiseParams.value, "z", 2, 10).name("Amplitude")
+  noiseParams.add(uniforms.uNoiseParams.value, "z", 1.5, 10).name("Amplitude")
   noiseParams.add(uniforms.uNoiseParams.value, "x", 1, 2, 1).name("Octave")
   // button that will reset the parameters to their default values
   gui
