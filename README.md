@@ -1,7 +1,7 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
 ## Project Summary
-![Live Demo](https://xcupsilon.github.io/hw01-fireball/)
+[Live Demo](https://xcupsilon.github.io/hw01-fireball/)
 
 In this project I explored different noise functions and curve modifying functions through creating some interesting shaders.
 By using different combinations of 3D Perlin Noise-based FBM in vertex and fragment shader, I created a deepsea alien creature wondering in the endless void
