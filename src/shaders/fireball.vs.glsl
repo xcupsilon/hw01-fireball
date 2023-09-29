@@ -7,6 +7,7 @@ varying float vElevation;
 varying vec3 vNor;
 varying vec3 vPos;
 varying vec3 vCamNor;
+varying float vPatternedNoise;
 
 #define PI 3.1415926535897932384626433832795
 
@@ -85,8 +86,11 @@ void main()
     // offset the position along the normal
     modelPosition.xyz += normal * gradientNoise * 0.5;
 
+    vPos = position;
+
     // noise 2
-    float patternedNoise = sin(25.0 * fbm(position, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z));
+    float patternedNoise = sin(25.0 * fbm(vPos, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z));
+    vPatternedNoise = patternedNoise;
     patternedNoise = patternedNoise * 0.5 + 0.5 * sin(uTime);
     modelPosition.xyz += normal * patternedNoise * uNoiseParams.w;
 
@@ -95,7 +99,6 @@ void main()
 
     gl_Position = projectedPosition;
 
-    vPos = position;
     vUv = uv;
     vNor = normal;
     // compute the camera normal in world space

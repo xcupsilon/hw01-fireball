@@ -10,6 +10,7 @@ varying float vElevation;
 varying vec3 vPos;
 varying vec3 vNor;
 varying vec3 vCamNor;
+varying float vPatternedNoise;
 
 float bias (float b, float t) { 
   return pow(t, log(b) / log(0.5));
@@ -96,11 +97,10 @@ void main()
     // float bias = 0.65; // adjusts from 0.2 to 0.8
     // float weight = luminance * 0.8 + bias;  
 
-    float patternedNoise = sin(25.0 * fbm(vPos, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z));
     float gradientNoise = fbm(vPos, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z);
     vec3 gradient = vec3(gradientNoise);
 
-    vec3 finalColor = mix(textureColor.rgb, vec3(patternedNoise), 0.2 * sin(uTime) + 0.5 * gradientNoise);
+    vec3 finalColor = mix(textureColor.rgb, vec3(vPatternedNoise), 0.2 * sin(uTime) + 0.5 * gradientNoise);
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

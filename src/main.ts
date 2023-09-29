@@ -96,7 +96,7 @@ function main() {
     fireball
   )
 
-  const envMap = new THREE.Mesh(new THREE.SphereGeometry(50, 512, 256), env)
+  const envMap = new THREE.Mesh(new THREE.SphereGeometry(50, 32, 16), env)
 
   scene.add(mesh)
   scene.add(envMap)
