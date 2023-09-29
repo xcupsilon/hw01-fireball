@@ -1,9 +1,9 @@
 uniform vec3 uColor;
 uniform float uTime;
-uniform sampler2D uTexture;
+uniform sampler2D uEnvTexture;
 
 // uniform vector for noise inputs
-uniform vec4 uNoiseParams;
+uniform vec4 uEnvNoiseParams;
 
 varying vec2 vUv;
 varying float vElevation;
@@ -21,6 +21,10 @@ float gain (float g, float t) {
   } else {
     return 1.0 - bias(1.0 - g, 2.0 - 2.0 * t) / 2.0;
   }
+}
+
+float parabola(float x, float k) {
+  return pow(4.0 * x * (1.0 - x), k);
 }
 
 // Modified perlin noise from 2D perlin used in miniminecraft in 460
@@ -89,18 +93,25 @@ void main()
     vec2 matcapUV = vec2(vCamNor.x * 0.5 + 0.5, vCamNor.y * 0.5 + 0.5); // mapping normal to uv 
 
     // sample from texture
-    vec4 textureColor = texture2D(uTexture, matcapUV);
+    vec4 textureColor = texture2D(uEnvTexture, matcapUV);
 
-    // // compute the luminance based on the matcap texture
-    // float luminance = dot(textureColor.rgb, vec3(0.299, 0.587, 0.114));
-    // float bias = 0.65; // adjusts from 0.2 to 0.8
-    // float weight = luminance * 0.8 + bias;  
+    // oscillate the freq based on time
+    float frequency = uEnvNoiseParams.z + 0.01 * sin(uTime * 0.2);
+    frequency = parabola(frequency, 2.5);
 
-    float patternedNoise = sin(25.0 * fbm(vPos, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z));
-    float gradientNoise = fbm(vPos, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z);
+    float patternedNoise = sin(20.0 * fbm(vPos, int(uEnvNoiseParams.x), uEnvNoiseParams.y, frequency));
+    float gradientNoise = fbm(vPos, int(uEnvNoiseParams.x), uEnvNoiseParams.y, frequency);
     vec3 gradient = vec3(gradientNoise);
 
     vec3 finalColor = mix(textureColor.rgb, vec3(patternedNoise), 0.2 * sin(uTime) + 0.5 * gradientNoise);
+    
+    // compute the luminance based on the matcap texture
+    float luminance = dot(textureColor.rgb, vec3(0.299, 0.587, 0.114));
+    luminance = bias(0.3, luminance);
+    float bias = 0.65; // adjusts from 0.2 to 0.8
+    float weight = luminance * 0.3 + bias;
+    weight = gain(0.75, weight);
+    finalColor = mix(finalColor, uColor, weight);
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

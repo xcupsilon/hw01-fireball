@@ -1,5 +1,7 @@
 uniform float uTime;
 
+uniform vec4 uNoiseParams;
+
 varying vec2 vUv;
 varying float vElevation;
 varying vec3 vNor;
@@ -75,17 +77,21 @@ void main()
     modelPosition.y += sin(modelPosition.x + uTime) * 0.2;
     modelPosition.x += sin(modelPosition.y + uTime) * 0.2;
 
+    // noise 1
     float gradientNoise = fbm(modelPosition.xyz, 4, 0.5, 1.2);
     // smooth the noise
+    // gradientNoise = gradientNoise * sin(uTime * 0.5) * 0.75;
     gradientNoise = pow(gradientNoise, 2.0);
-
     // offset the position along the normal
     modelPosition.xyz += normal * gradientNoise * 0.5;
 
+    // noise 2
+    float patternedNoise = sin(25.0 * fbm(position, int(uNoiseParams.x), uNoiseParams.y, uNoiseParams.z));
+    patternedNoise = patternedNoise * 0.5 + 0.5 * sin(uTime);
+    modelPosition.xyz += normal * patternedNoise * uNoiseParams.w;
 
     vec4 viewPosition = viewMatrix * modelPosition;
     vec4 projectedPosition = projectionMatrix * viewPosition;
-
 
     gl_Position = projectedPosition;
 

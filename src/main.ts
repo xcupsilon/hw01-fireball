@@ -7,19 +7,22 @@ const Stats = require("stats-js")
 
 const vert = require("./shaders/fireball.vs.glsl")
 const frag = require("./shaders/fireball.fs.glsl")
+const fragEnv = require("./shaders/envMap.fs.glsl")
 
 // Matcaps
 const flame = require("../public/static/textures/matcaps/flame.jpg").default
 const redhalo = require("../public/static/textures/matcaps/redhalo.png").default
+const blackhole = require("../public/static/textures/matcaps/void.png").default
 
 // Texture used
 const textureLoader = new THREE.TextureLoader()
 const matcapTexture = textureLoader.load(redhalo)
+const envTexture = textureLoader.load(blackhole)
 
 // Controllable parameters
 const parameters = {
   radius: 1, // Radius of the sphere
-  subdivision: 25, // Subdivision of the sphere
+  subdivision: 512, // Subdivision of the sphere
   basecolor: "#000000", // Base color of the sphere
 }
 
@@ -28,8 +31,9 @@ const uniforms = {
   uTime: { value: 0.0 },
   uColor: { value: new THREE.Color(0xffffff) },
   uTexture: { value: matcapTexture },
-  uTimeScale: { value: 0.1 },
-  uNoiseParams: { value: new THREE.Vector3(2.0, 0.1, 2.0) },
+  uEnvTexture: { value: envTexture },
+  uNoiseParams: { value: new THREE.Vector4(1, 0.1, 1.8, 0.07) },
+  uEnvNoiseParams: { value: new THREE.Vector4(1.0, 0.1, 0.1, -0.1) },
 }
 
 function main() {
@@ -63,70 +67,94 @@ function main() {
 
   const scene = new THREE.Scene()
 
-  // matcap material, override later for shader
-  const matcap = new THREE.MeshMatcapMaterial()
-  matcap.matcap = matcapTexture
+  // // matcap material, override later for shader
+  // const matcap = new THREE.MeshMatcapMaterial()
+  // matcap.matcap = matcapTexture
 
-  // Material
+  // Material for fireball
   const fireball = new THREE.ShaderMaterial({
     vertexShader: vert,
     fragmentShader: frag,
     uniforms: uniforms,
+    side: THREE.DoubleSide,
   })
 
-  // // Set default color to red
-  // lambert.setGeometryColor(new Float32Array([1, 0, 0, 1]))
-
-  // // set the default scale for worley noise
-  // lambert.setScale(new Float32Array([worleyScale, worleyScale, worleyScale, 1]))
+  // Material for envmap
+  const env = new THREE.ShaderMaterial({
+    vertexShader: vert,
+    fragmentShader: fragEnv,
+    uniforms: uniforms,
+    side: THREE.BackSide, // render the inside of the sphere
+  })
 
   const mesh = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(parameters.radius, parameters.subdivision),
+    new THREE.SphereGeometry(
+      parameters.radius,
+      parameters.subdivision * 2,
+      parameters.subdivision
+    ),
     fireball
   )
-  // load matcap texture
+
+  const envMap = new THREE.Mesh(new THREE.SphereGeometry(50, 512, 256), env)
 
   scene.add(mesh)
+  scene.add(envMap)
 
   // Add GUI elements
   const gui = new DAT.GUI()
-  gui.addColor(parameters, "basecolor").name("Base Color")
-
   gui
     .add(parameters, "radius", 0, 2)
     .name("Radius")
     .onChange(() => {
-      mesh.geometry = new THREE.IcosahedronGeometry(
+      mesh.geometry = new THREE.SphereGeometry(
         parameters.radius,
+        parameters.subdivision * 2,
         parameters.subdivision
       )
     })
 
   gui
-    .add(parameters, "subdivision", 5, 30, 1)
-    .name("Subdivision")
+    .add(parameters, "subdivision", 64, 1024, 1)
+    .name("Width Segments")
     .onChange(() => {
-      mesh.geometry = new THREE.IcosahedronGeometry(
+      mesh.geometry = new THREE.SphereGeometry(
         parameters.radius,
+        parameters.subdivision * 2,
         parameters.subdivision
       )
     })
 
   // noise parameters
   const noiseParams = gui.addFolder("Noise Parameters")
-  noiseParams.add(uniforms.uNoiseParams.value, "y", 0.1, 0.8).name("Frequency")
-  noiseParams.add(uniforms.uNoiseParams.value, "z", 1.5, 10).name("Amplitude")
+  noiseParams.add(uniforms.uNoiseParams.value, "y", 0.1, 0.8).name("Amplitude")
+  noiseParams.add(uniforms.uNoiseParams.value, "z", 1.5, 4).name("Frequency")
   noiseParams.add(uniforms.uNoiseParams.value, "x", 1, 2, 1).name("Octave")
+  noiseParams
+    .add(uniforms.uNoiseParams.value, "w", -0.1, 0.2)
+    .name("Height Offset")
+
+  gui
+    .addColor(parameters, "basecolor")
+    .name("Backgrond Color (Rec: go darkness)")
+
   // button that will reset the parameters to their default values
   gui
     .add({ reset: () => {} }, "reset")
     .name("Reset")
     .onChange(() => {
+      parameters.basecolor = "#000000"
       parameters.radius = 1
-      parameters.subdivision = 8
+      parameters.subdivision = 512
 
-      mesh.geometry = new THREE.IcosahedronGeometry(
+      noiseParams.__controllers[0].setValue(0.1)
+      noiseParams.__controllers[1].setValue(2.0)
+      noiseParams.__controllers[2].setValue(2.0)
+      noiseParams.__controllers[3].setValue(0.05)
+
+      mesh.geometry = new THREE.SphereGeometry(
         parameters.radius,
+        parameters.subdivision * 2,
         parameters.subdivision
       )
       // mesh.material.color.set(parameters.basecolor)
