@@ -1,7 +1,10 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
-## HW Summary
-Taking a late day for some extra time to work on extra spice & refine the shader :)
+## Project Summary
+In this project I explored different noise functions and curve modifying functions through creating some interesting shaders.
+By using different combinations of 3D Perlin Noise-based FBM in vertex and fragment shader, I created a deepsea alien creature wondering in the endless void
+
+Took an extension from Rachel for some extra time to work on extra spice & refine the shader :)
 
 ## Objective
 
